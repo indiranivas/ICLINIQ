@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Recommendation Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #6A82FB, #FC5C7D);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .sidebar ul {
+            list-style: none;
+        }
+        .sidebar ul li {
+            margin: 10px 0;
+            padding: 10px;
+            background: #34495e;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar ul li:hover {
+            background: #1abc9c;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-bottom: 60px; /* Space for input container */
+        }
+        .chat-history .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .chat-history .message.user {
+            margin-left: auto;
+            background: #6A82FB;
+            color: #fff;
+        }
+        .chat-history .message.bot {
+            margin-right: auto;
+            background: #eaecef;
+        }
+        .chat-history .message.bot ul {
+            margin-left: 20px;
+        }
+        .input-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #eaecef;
+            border-radius: 20px;
+            outline: none;
+            font-size: 1rem;
+        }
+        .input-container button {
+            padding: 10px 20px;
+            background: #6A82FB;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .input-container button:hover {
+            background: #5c73ea;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .new-chat-btn, .download-btn {
+            padding: 10px 20px;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .new-chat-btn {
+            background: #1abc9c;
+        }
+        .new-chat-btn:hover {
+            background: #16a085;
+        }
+        .download-btn {
+            background: #FC5C7D;
+            display: none; /* Hidden by default */
+        }
+        .download-btn:hover {
+            background: #e64c6d;
+        }
+        .response-container {
+            margin-bottom: 10px;
+        }
+        .response-container p {
+            margin-bottom: 8px;
+        }
+        .response-container ul {
+            margin-left: 20px;
+        }
+        .timestamp {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 5px;
+            display: block;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: 90vh;
+            }
+            .sidebar {
+                width: 100%;
+                height: 150px;
+                overflow-y: auto;
+            }
+            .main-content {
+                flex: 1;
+            }
+            .input-container {
+                position: static;
+                width: 100%;
+                margin-top: 20px;
+            }
+            .button-container {
+                position: static;
+                margin-bottom: 10px;
+            }
+        }
+        /* Add these styles to your existing CSS */
+.quick-reply-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: flex-start;
+}
+
+.quick-reply-btn {
+    background-color: #eaecef;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+.quick-reply-btn:hover {
+    background-color: #1abc9c;
+    color: #fff;
+    border-color: #1abc9c;
+}
+
+/* Update the chat history styles to better accommodate multiple diseases */
+.chat-history .message.bot ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.chat-history .message.bot p {
+    margin-bottom: 8px;
+}
+
+.chat-history .message.bot strong {
+    color: #2c3e50;
+}
+
+/* Highlight the extracted symptoms */
+p strong:contains("Extracted Symptoms:") + span {
+    background-color: #e8f4f8;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Style the confidence levels */
+.confidence-high {
+    color: #16a085;
+}
+
+.confidence-medium {
+    color: #f39c12;
+}
+
+.confidence-low {
+    color: #e74c3c;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar for Chat History -->
+        <div class="sidebar">
+            <h2>Chat History</h2>
+            <ul id="chatHistory">
+                <!-- Chat history items will be dynamically added here -->
+            </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Button Container -->
+            <div class="button-container">
+                <button class="new-chat-btn" id="newChatButton">New Chat</button>
+                <button class="download-btn" id="downloadReport">Download Report</button>
+            </div>
+
+            <!-- Chat History Display -->
+            <div class="chat-history" id="chatHistoryDisplay">
+                <!-- Chat messages will be dynamically added here -->
+            </div>
+
+            <!-- Input Box -->
+            <div class="input-container">
+                <input id="symptomsInput" placeholder="Enter your symptoms..." type="text" required />
+                <button id="sendButton"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const chatHistoryDisplay = $('#chatHistoryDisplay');
+            const chatHistoryList = $('#chatHistory');
+            const symptomsInput = $('#symptomsInput');
+            const sendButton = $('#sendButton');
+            const newChatButton = $('#newChatButton');
+            const downloadReportButton = $('#downloadReport');
+        
+            let currentSessionId = null; // Track the current chat session
+            let currentChatData = {}; // Store current chat data for downloading
+            let extractedSymptoms = []; // Store extracted symptoms
+        
+            // Fetch chat history on page load
+            fetchChatHistory();
+        
+            // Function to fetch chat history
+            function fetchChatHistory() {
+                $.ajax({
+                    url: '/get_chat_history',
+                    type: 'GET',
+                    success: function(response) {
+                        chatHistoryList.empty();
+                        response.forEach(session => {
+                            const date = new Date(session.created_at).toLocaleString();
+                            const sessionItem = `<li data-session-id="${session.session_id}" title="${date}">Chat ${session.session_id}: ${session.preview}</li>`;
+                            chatHistoryList.append(sessionItem);
+                        });
+        
+                        // Attach click event to the new items
+                        $('#chatHistory li').on('click', function() {
+                            const sessionId = $(this).data('session-id');
+                            loadChatSession(sessionId);
+                        });
+                    },
+                    error: function() {
+                        alert('Failed to fetch chat history.');
+                    }
+                });
+            }
+        
+            // Function to load a chat session
+            function loadChatSession(sessionId) {
+                $.ajax({
+                    url: `/get_chat_history`,
+                    type: 'GET',
+                    success: function(response) {
+                        // Find the selected session
+                        const selectedSession = response.find(session => session.session_id === sessionId);
+                        if (selectedSession) {
+                            chatHistoryDisplay.empty();
+        
+                            // Display messages for the selected session
+                            selectedSession.messages.forEach(message => {
+                                const messageClass = message.is_user ? 'user' : 'bot';
+                                const date = new Date(message.created_at).toLocaleString();
+                                
+                                let messageContent = message.message_text;
+                                
+                                const messageHtml = `
+                                    <div class="message ${messageClass}">
+                                        ${messageContent}
+                                        <span class="timestamp">${date}</span>
+                                    </div>
+                                `;
+                                chatHistoryDisplay.append(messageHtml);
+                            });
+        
+                            // Set the current session ID
+                            currentSessionId = sessionId;
+                            
+                            // Extract symptoms for this session if available
+                            if (selectedSession.symptoms) {
+                                extractedSymptoms = selectedSession.symptoms.split(',');
+                            } else {
+                                extractedSymptoms = [];
+                            }
+                            
+                            // Scroll to the bottom
+                            chatHistoryDisplay.scrollTop(chatHistoryDisplay[0].scrollHeight);
+                            
+                            // Show download button
+                            downloadReportButton.show();
+                            
+                            // Extract disease info for download
+                            extractDiseaseInfo();
+                        } else {
+                            alert('Chat session not found.');
+                        }
+                    },
+                    error: function() {
+                        alert('Failed to load chat session.');
+                    }
+                });
+            }
+        
+            // New Chat Button Click Event
+            newChatButton.on('click', function() {
+                chatHistoryDisplay.empty();
+                downloadReportButton.hide();
+                currentSessionId = null; // Reset the current session ID
+                currentChatData = {}; // Reset current chat data
+                extractedSymptoms = []; // Reset extracted symptoms
+            });
+        
+            // Send button click event
+            sendButton.on('click', function() {
+                const query = symptomsInput.val().trim();
+                if (!query) {
+                    alert('Please enter symptoms or answer the follow-up questions.');
+                    return;
+                }
+        
+                // Add user message to chat history
+                addMessageToHistory(query, true);
+        
+                // Clear input
+                symptomsInput.val('');
+        
+                // Send request to backend
+                $.ajax({
+                    url: '/get_recommendation',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ 
+                        message: query, 
+                        session_id: currentSessionId
+                    }),
+                    success: function(response) {
+                        // Store the response for the download button
+                        currentChatData = {
+                            disease: response.disease,
+                            description: response.description,
+                            diagnostic_statement: response.diagnostic_statement,
+                            precautions: response.precautions,
+                            possible_diseases: response.possible_diseases,
+                            extracted_symptoms: response.extracted_symptoms
+                        };
+        
+                        // Update extracted symptoms
+                        extractedSymptoms = response.extracted_symptoms;
+                        
+                        // Add bot response to chat history
+                        addMessageToHistory(response.formatted_response, false);
+        
+                        // Show download button
+                        downloadReportButton.show();
+        
+                        // Update the current session ID
+                        currentSessionId = response.session_id;
+                        
+                        // Add quick reply buttons for follow-up questions
+                        if (response.next_questions && response.next_questions.length > 0) {
+                            const questionBtns = $('<div class="quick-reply-container"></div>');
+                            response.next_questions.forEach(question => {
+                                const btn = $(`<button class="quick-reply-btn">${question}</button>`);
+                                btn.on('click', function() {
+                                    symptomsInput.val($(this).text());
+                                    sendButton.click();
+                                });
+                                questionBtns.append(btn);
+                            });
+                            chatHistoryDisplay.append(questionBtns);
+                        }
+                        
+                        // Update sidebar
+                        fetchChatHistory();
+                    },
+                    error: function() {
+                        addMessageToHistory('<p>Sorry, an error occurred. Please try again.</p>', false);
+                    }
+                });
+            });
+        
+            // Function to extract disease info from the current chat
+            function extractDiseaseInfo() {
+                // Extract disease info from the displayed messages
+                const diseaseElement = chatHistoryDisplay.find('strong:contains("Top Disease:")').parent();
+                if (diseaseElement.length) {
+                    const disease = diseaseElement.text().replace('Top Disease:', '').trim();
+                    const description = chatHistoryDisplay.find('strong:contains("Description:")').parent().text().replace('Description:', '').trim();
+                    const diagnosticStatement = chatHistoryDisplay.find('strong:contains("Diagnostic Statement:")').parent().text().replace('Diagnostic Statement:', '').trim();
+                    
+                    const precautions = [];
+                    chatHistoryDisplay.find('strong:contains("Precautions:")').parent().next().find('li').each(function() {
+                        precautions.push($(this).text().trim());
+                    });
+                    
+                    currentChatData = {
+                        disease: disease,
+                        description: description,
+                        diagnostic_statement: diagnosticStatement,
+                        precautions: precautions,
+                        extracted_symptoms: extractedSymptoms
+                    };
+                }
+            }
+        
+            // Download Report Button Click Event
+            downloadReportButton.on('click', function() {
+                if (Object.keys(currentChatData).length === 0) {
+                    extractDiseaseInfo();
+                }
+                
+                if (Object.keys(currentChatData).length === 0) {
+                    alert('No disease information available to download.');
+                    return;
+                }
+        
+                // Send data to backend to generate PDF
+                $.ajax({
+                    url: '/download_report',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(currentChatData),
+                    xhrFields: {
+                        responseType: 'blob' // to handle binary data
+                    },
+                    success: function(blob) {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'medical_report.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        a.remove();
+                    },
+                    error: function() {
+                        alert('Failed to download the report. Please try again.');
+                    }
+                });
+            });
+        
+            // Enter key event for input
+            symptomsInput.on('keypress', function(e) {
+                if (e.which === 13) { // Enter key
+                    sendButton.click();
+                }
+            });
+        
+            // Function to add a message to the chat history
+            function addMessageToHistory(message, isUser = true) {
+                const messageClass = isUser ? 'user' : 'bot';
+                const date = new Date().toLocaleString();
+                const messageHtml = `
+                    <div class="message ${messageClass}">
+                        ${isUser ? message : message}
+                        <span class="timestamp">${date}</span>
+                    </div>
+                `;
+                chatHistoryDisplay.append(messageHtml);
+                chatHistoryDisplay.scrollTop(chatHistoryDisplay[0].scrollHeight); // Auto-scroll to bottom
+            }
+        });
+    </script>
+</body>
+</html>
